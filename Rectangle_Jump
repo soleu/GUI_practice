@@ -1,0 +1,159 @@
+package GUI;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.event.*;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+class Rect {
+	int x;
+	int y;
+	int width;
+	int height;
+	Color color;
+	String text;
+}
+class Player {
+	double x;
+	double y;
+	double w;// width
+	double h;// height
+	Color color;
+	int state = -1;
+	float jump = 8f;
+	float gravity = 0.0f;// 중력 느낌
+	int direction = 0; // 0= 정지, 1: 점프중, 2: 다운중
+	// 설정값
+	float jump_speed = -5.2f;// 점프속도
+	float jump_accell = 0.05f;// 점프가속
+	float y_base = 0.5f;// 캐릭터가 서 있는 기준점
+}
+class Panel_jump extends JPanel implements MouseMotionListener, MouseListener {
+	Rect[] rect = new Rect[4];
+	Player p = new Player();
+	Panel_jump() {
+		addMouseListener(this); // 마우스 와 패널 연결
+		addMouseMotionListener(this); // 마우스 모션 과 패널 연결
+		p.x = 100;
+		p.y = 500;
+		p.w = 200;
+		p.h = 200;
+		p.color = Color.white;
+		for (int i = 0; i < 4; i++) {
+			rect[i] = new Rect();
+			rect[i].x = 500 + i * 50;
+			rect[i].y = 500;
+			rect[i].width = 50;
+			rect[i].height = 50;
+			rect[i].color = Color.white;
+		}
+		rect[0].x = 600;
+		rect[0].y = 450;
+		rect[0].text = "↑";
+		rect[1].text = "←";
+		rect[2].text = "↓";
+		rect[3].text = "→";
+	}
+	protected void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		try {
+			Thread.sleep(10);
+			repaint();
+		} catch (Exception e) {
+		}
+		update();
+		// arrow
+		for (int i = 0; i < 4; i++) {
+			g.setColor(rect[i].color);
+			g.fillRect(rect[i].x, rect[i].y, rect[i].width, rect[i].height);
+			g.setColor(Color.black);
+			g.drawRect(rect[i].x, rect[i].y, rect[i].width, rect[i].height);
+			g.drawString(rect[i].text, rect[i].x + 20, rect[i].y + 30);
+		}
+		g.drawString("[PRESS ANY KEY]", 575, 420);
+		// circle
+		g.setColor(p.color);
+		g.fillRoundRect((int) p.x, (int) p.y, (int) p.w, (int) p.h, 200, 200);
+		g.setColor(Color.black);
+		g.drawRoundRect((int) p.x, (int) p.y, (int) p.w, (int) p.h, 200, 200);
+	}
+	void update() {
+		// 공이 움직이는 것을 구현
+		// 움직이는 것을 구현할때는 별도의 함수 필요.
+		if (p.direction == 1) {
+			p.y += p.gravity;
+			if (p.gravity >= 0.0f) {// 주어진 위지에 도착했다면
+				p.direction = 2;
+			} else {
+				p.gravity += p.jump_accell;// 점프 가속 붙이기
+			}
+		} else if (p.direction == 2) {// 꼭대기 도달했을때
+			p.y -= p.gravity;
+			if (p.gravity >= p.jump_speed) {
+				p.gravity -= p.jump_accell;
+			} else {
+				p.direction = 0;
+			}
+		}
+	}
+	@Override
+	public void mouseClicked(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+	@Override
+	public void mouseEntered(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+	@Override
+	public void mouseExited(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// 화살표 회색
+		// 다시 내려감
+		int x = e.getX();
+		int y = e.getY();
+		// 화살표를 눌렀을때, 공이 튀어 오름, 화살표 색이 회색
+		for (int i = 0; i < 4; i++) {
+			if (x > rect[i].x && x < rect[i].x + rect[i].width && y > rect[i].y && y < rect[i].y + rect[i].height) {
+				rect[i].color = Color.LIGHT_GRAY;
+			}
+		}
+		if (p.direction == 0) {
+			p.direction = 1;
+			p.gravity = p.jump_speed;
+		}
+	}
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// 화살표를 뗴면 흰색
+		int x = e.getX();
+		int y = e.getY();
+		for (int i = 0; i < 4; i++) {
+			if (x > rect[i].x && x < rect[i].x + rect[i].width && y > rect[i].y && y < rect[i].y + rect[i].height) {
+				rect[i].color = Color.white;
+			}
+		}
+	}
+	@Override
+	public void mouseDragged(MouseEvent e) {
+		// TODO Auto-generated method stub
+	}
+	@Override
+	public void mouseMoved(MouseEvent e) {
+		// TODO Auto-generated method stub
+	}
+}
+public class Jumping_Circle {
+	public static void main(String[] args) {
+		JFrame frame = new JFrame();
+		frame.setTitle("Jumping_Circle");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setLocation(100, 100);
+		frame.setSize(1200, 1000);
+		frame.setVisible(true);
+		Panel_jump pj = new Panel_jump();
+		frame.setContentPane(pj);
+		frame.revalidate();
+	}
+}
