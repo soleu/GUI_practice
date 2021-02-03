@@ -1,0 +1,92 @@
+package GUI;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.event.*;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+class Rectangle {
+	int x;
+	int y;
+	int height;
+	int width;
+	Color color;
+}
+class panel_Rect extends JPanel implements MouseMotionListener, MouseListener {
+	Rectangle rect = new Rectangle();
+	boolean drag = false;
+	int pressX;
+	int pressY;
+	panel_Rect() {
+		addMouseListener(this);
+		addMouseMotionListener(this);
+		rect.x = 100;
+		rect.y = 100;
+		rect.height = 200;
+		rect.width = 200;
+		Color color = Color.magenta;
+	}
+	protected void paintComponent(Graphics g) {
+		super.paintComponent(g);
+		try {
+			Thread.sleep(10);
+			repaint();
+		} catch (Exception e) {
+		}
+		g.setColor(rect.color);
+		g.fillRect(rect.x, rect.y, rect.width, rect.height);
+		g.setColor(Color.black);
+		g.drawRect(rect.x, rect.y, rect.width, rect.height);
+		g.drawString(drag + "", 100, 100);
+	}
+	@Override
+	public void mouseClicked(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+	@Override
+	public void mouseEntered(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+	@Override
+	public void mouseExited(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+	@Override
+	public void mousePressed(MouseEvent e) {
+		int x = e.getX();
+		int y = e.getY();
+		if (x > rect.x && x < rect.x + rect.width && y > rect.y && y < rect.y + rect.height) {
+			drag = true;
+			pressX = x - rect.x;// 현재 누른위치-원래 사각형의 위치(이동 거리만 측정)
+			pressY = y - rect.y;
+		}
+	}
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		drag = false;
+	}
+	@Override
+	public void mouseDragged(MouseEvent e) {
+		int x = e.getX();
+		int y = e.getY();
+		if (drag == true) {// 드래그가 켜저있으면
+			rect.x = x - pressX;// 사각형 위치를 커서 지금 위치- 처음 눌렀던 위치(상대적으로 이동)
+			rect.y = y - pressY;
+		}
+	}
+	@Override
+	public void mouseMoved(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+	}
+}
+public class Drag_Rectangle {
+	public static void main(String[] args) {
+		JFrame frame = new JFrame();
+		frame.setTitle("Drag_Rectangle");
+		frame.setLocation(100, 100);
+		frame.setSize(1000, 1000);
+		frame.setVisible(true);
+		panel_Rect pr = new panel_Rect();
+		frame.setContentPane(pr);
+		frame.revalidate();
+	}
+}
