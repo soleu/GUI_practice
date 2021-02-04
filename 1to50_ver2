@@ -1,0 +1,242 @@
+package GUI;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.*;
+import java.awt.Graphics;
+import java.awt.Toolkit;
+
+import javax.swing.JButton;
+import javax.swing.JPanel;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+
+import java.util.Random;
+
+class StopWatch extends Thread {
+	static String timeText;
+
+	long time = 0l;// 시간은 long 형태로 표시
+	static long preTime = 0l;
+
+	boolean play = true;
+
+	public void run() {
+		// 게임 시작
+		preTime = System.currentTimeMillis();// 시작 시간 재기
+		System.out.println(preTime);
+
+		while (play) {
+			try {
+				sleep(10);
+				if (Game_Panel.isStopWatch) {// 게임 종료시
+					time = System.currentTimeMillis() - preTime;
+					int m = (int) (time / 1000.0 / 60.0);
+					int s = (int) (time % (1000.0 * 60) / 1000.0);
+					int ms = (int) (time % 1000.0 / 10.0);
+					timeText = m + " : " + s + " : " + ms;
+					Game_Panel.Time.setText(timeText);
+				}
+
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+	}
+}
+
+class Game_Panel extends JPanel implements ActionListener {
+	Random ran = new Random();
+
+	JPanel TopPanel;
+	static JLabel Time;
+	JLabel Count;// 다음 숫자
+	JLabel Title;
+	JLabel description;
+	int count = 1;// 다음 숫자
+	JButton retry;// 다시하기 버튼
+	JButton[][] arrNum;// 1to50 판
+	int countFront[] = new int[25];// 1~25까지 셔플
+	int countBack[] = new int[25];// 26~50까지 셔플
+	static boolean isStopWatch = false;// 게임 종료시 사용
+
+	public Game_Panel() {
+		setLayout(null);
+		setBackground(Color.white);
+		// 순서에 따라 레이어 순서가 달라짐. 위쪽에 쓸 수록 위로 올라감
+
+		Font font = new Font("", Font.BOLD, 40);
+		Font smallFont = new Font("", Font.PLAIN, 15);
+		Color mycolor = new Color(205, 74, 119);
+		Color mycolor2 = new Color(236, 139, 131);
+		Color mycolor3 = new Color(67, 72, 82);
+		Color mycolor4 = new Color(150, 153, 155);
+
+		Title = new JLabel("1 to 50");
+		Title.setForeground(mycolor3);
+		Title.setLocation(60, 150);
+		Title.setFont(font);
+		Title.setSize(200, 100);
+		add(Title);
+
+		description = new JLabel("1부터 50까지 순서대로 터치하여 없애보세요.");
+		description.setForeground(mycolor4);
+		description.setLocation(60, 180);
+		description.setFont(smallFont);
+		description.setSize(500, 100);
+		add(description);
+
+		Count = new JLabel(count + "");
+		Count.setForeground(mycolor);// background 지정시, 밑 색과 충돌. foreground 사용
+		Count.setLocation(450, 30);
+		Count.setFont(new Font("", Font.BOLD, 70));
+		Count.setSize(150, 100);
+		add(Count);
+
+		Time = new JLabel("0:00:00");
+		Time.setForeground(mycolor2);
+		Time.setLocation(60, 30);
+		Time.setFont(new Font("", Font.BOLD, 50));
+		Time.setSize(300, 100);
+		add(Time);
+
+		TopPanel = new JPanel();// 윗쪽 패널
+		TopPanel.setLayout(null);
+		TopPanel.setBackground(new Color(245, 223, 77));
+		TopPanel.setSize(600, 150);
+		TopPanel.setLocation(0, 0);
+		add(TopPanel);
+		TopPanel.add(Count);
+		TopPanel.add(Time);
+
+		retry = new JButton();
+		retry.setBackground(Color.white);
+		retry.setFont(new Font("SanSerif", Font.BOLD, 18));
+		retry.setBounds(60, 250, 100, 40);
+		retry.setText("Retry?");
+		retry.addActionListener(this);
+		add(retry);
+
+		shuffle();// 들어갈 숫자 배열 섞기
+
+		arrNum = new JButton[5][5];
+		int countTemp = 0;
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < 5; j++) {
+				arrNum[i][j] = new JButton();
+				arrNum[i][j].setText(countFront[countTemp] + "");
+				arrNum[i][j].setBackground(new Color(240, 227, 206));
+				arrNum[i][j].setBorderPainted(false);
+				arrNum[i][j].setFont(font);
+				arrNum[i][j].setBounds(60 + i * 90, 300 + j * 90, 90, 90);
+				arrNum[i][j].addActionListener(this);
+				add(arrNum[i][j]);
+				countTemp++;
+			}
+		}
+
+	}
+
+	void shuffle() {
+		for (int i = 0; i < 25; i++) {
+			countFront[i] = i + 1;
+			countBack[i] = i + 26;
+		}
+
+		for (int i = 0; i < 100; i++) {
+			int rNum = ran.nextInt(25);
+			int rNum2 = ran.nextInt(25);
+			int rNum3 = ran.nextInt(25);
+
+			int temp = countFront[rNum];
+			countFront[rNum] = countFront[rNum2];
+			countFront[rNum2] = temp;
+
+			int temp2 = countBack[rNum];
+			countBack[rNum] = countBack[rNum3];
+			countBack[rNum3] = temp2;
+		}
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// 리셋
+		if (e.getSource() == retry) {
+			isStopWatch = false;
+			Time.setText("0:00:00");
+			count = 1;
+			Count.setText(count + "");
+			int countTemp = 0;
+			for (int i = 0; i < 5; i++) {
+				for (int j = 0; j < 5; j++) {
+					arrNum[i][j].setText(countFront[countTemp] + "");
+					arrNum[i][j].setBackground(new Color(240, 227, 206));
+					arrNum[i][j].setFont(new Font("", Font.BOLD, 40));
+					add(arrNum[i][j]);
+					countTemp++;
+				}
+			}
+		}
+
+		// 입력이 생기면 타임워치 시작
+		else if (e.getSource() != null) {
+			isStopWatch = true;
+		}
+
+		// 숫자 누르기
+		for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < 5; j++) {
+				if (e.getSource() == arrNum[i][j]) {
+					if (count < 26) {
+						if (countFront[i * 5 + j] == count) {
+							arrNum[i][j].setText(countBack[i * 5 + j] + "");
+							arrNum[i][j].setBackground(new Color(224, 181, 137));
+							count++;
+							Count.setText(count + "");
+						}
+					} else {// 26~50
+						if (countBack[i * 5 + j] == count) {
+							arrNum[i][j].setText("");
+							count++;
+							Count.setText(count + "");
+							arrNum[i][j].setBackground(Color.white);
+						}
+					}
+
+					if (count == 51) {
+						// 스탑워치를 멈춤
+						Count.setText("DONE!");
+						Count.setFont(new Font("", Font.BOLD, 40));
+						isStopWatch = false;
+					}
+				}
+			}
+		}
+	}
+}
+
+public class Game_1_to_50 {
+	public static void main(String[] args) {
+
+		JFrame frame = new JFrame();
+		frame.setTitle("1 to 50 Game");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		frame.setLocation(screenSize.width / 2 - 600, screenSize.height / 2 - 450);
+		frame.setSize(600, 900);
+		frame.setVisible(true);
+
+		Game_Panel gp = new Game_Panel();
+		frame.setContentPane(gp);
+		frame.revalidate();
+		frame.repaint();
+
+		StopWatch sw = new StopWatch();
+		sw.run();
+
+	}
+
+}
