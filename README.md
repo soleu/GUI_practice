@@ -1,4 +1,4 @@
-# GUI_practice
+# Meal Ticket System (GUI practice)
 
 -Meal Ticket System
 
